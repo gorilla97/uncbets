@@ -1,4 +1,4 @@
-# uncbets
+# uncbets: Sweeps
 
 ### Betting app that lets you bet for anything at UNC 
 
