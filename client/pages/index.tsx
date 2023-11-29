@@ -11,10 +11,10 @@ interface Bet {
 
 function Index() {
   const [message, setMessage] = useState('Loading, hold up');
-  const [people, setPeople] = useState<string[]>([]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [bets, setBets] = useState<Bet[]>([]);
+  const [token, setToken] = useState('');
   const [newBet, setNewBet] = useState({
     creator_id: 1, // Assuming a default user ID for now
     acceptor_id: 2, // Assuming another default user ID for now
@@ -25,11 +25,15 @@ function Index() {
 
   useEffect(() => {
     // Fetch home data
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setToken(storedToken);
+      }
+
     fetch('http://localhost:8000/api/home')
       .then((response) => response.json())
       .then((data) => {
         setMessage(data.message);
-        setPeople(data.people);
       });
 
     // Fetch all bets
@@ -51,36 +55,74 @@ function Index() {
       .then((data) => setMessage(data.message));
   };
 
-  const handleLogin = () => {
-    // Handle user login
-    fetch('http://localhost:8000/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    })
-      .then((response) => response.json())
-      .then((data) => setMessage(data.message));
+  const handleLogin = (saveToken) => {
+  const loginData = {
+    username: username,
+    password: password,
   };
+
+  // Handle user login
+  fetch('http://localhost:8000/api/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(loginData),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.message === 'Login successful') {
+        setMessage(data.message);
+        saveToken(data.token); // Save the token to local storage
+        // Fetch updated list of bets after login
+        fetch(`http://localhost:8000/api/home/${data.user_id}`, {
+          headers: {
+            Authorization: `Bearer ${data.token}`, // Include the token in the request headers
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => setBets(data.bets));
+      } else {
+        setMessage(data.message);
+      }
+    });
+};
 
   const handleCreateBet = () => {
     // Handle creating a new bet
-    fetch('http://localhost:8000/api/bets', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newBet),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setMessage(data.message);
-        // Fetch updated list of bets after creating a new bet
-        fetch('http://localhost:8000/api/bets')
-          .then((response) => response.json())
-          .then((data) => setBets(data.bets));
-      });
+    fetch('http://localhost:8000/api/create_bet', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`, // Include the token in the request headers
+    },
+    body: JSON.stringify(newBet),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      setMessage(data.message);
+      // Fetch updated list of bets after creating a new bet
+      fetch(`http://localhost:8000/api/home/${newBet.creator_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the token in the request headers
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => setBets(data.bets));
+    });
+};
+
+  const saveTokenToLocalStorage = (token) => {
+    localStorage.setItem('token', token);
+    setToken(token);
+    };
+
+  const removeTokenFromLocalStorage = () => {
+    localStorage.removeItem('token');
+    setToken('');
+  };
+
+
   };
 
   return (
