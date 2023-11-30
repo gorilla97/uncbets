@@ -28,7 +28,7 @@ function Index() {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
-      }
+    }
 
     fetch('http://localhost:8000/api/home')
       .then((response) => response.json())
@@ -55,74 +55,72 @@ function Index() {
       .then((data) => setMessage(data.message));
   };
 
-  const handleLogin = (saveToken) => {
-  const loginData = {
-    username: username,
-    password: password,
-  };
+  type SaveTokenType = (token: string) => void;
 
-  // Handle user login
-  fetch('http://localhost:8000/api/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(loginData),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.message === 'Login successful') {
-        setMessage(data.message);
-        saveToken(data.token); // Save the token to local storage
-        // Fetch updated list of bets after login
-        fetch(`http://localhost:8000/api/home/${data.user_id}`, {
-          headers: {
-            Authorization: `Bearer ${data.token}`, // Include the token in the request headers
-          },
-        })
-          .then((response) => response.json())
-          .then((data) => setBets(data.bets));
-      } else {
-        setMessage(data.message);
-      }
-    });
-};
+  const handleLogin = (saveToken: SaveTokenType) => {
+    const loginData = {
+      username: username,
+      password: password,
+    };
+    // Handle user login
+    fetch('http://localhost:8000/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(loginData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === 'Login successful') {
+          setMessage(data.message);
+          saveToken(data.token); // Save the token to local storage
+          // Fetch updated list of bets after login
+          fetch(`http://localhost:8000/api/home/${data.user_id}`, {
+            headers: {
+              Authorization: `Bearer ${data.token}`, // Include the token in the request headers
+            },
+          })
+            .then((response) => response.json())
+            .then((data) => setBets(data.bets));
+        } else {
+          setMessage(data.message);
+        }
+      });
+  };
 
   const handleCreateBet = () => {
     // Handle creating a new bet
     fetch('http://localhost:8000/api/create_bet', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`, // Include the token in the request headers
-    },
-    body: JSON.stringify(newBet),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      setMessage(data.message);
-      // Fetch updated list of bets after creating a new bet
-      fetch(`http://localhost:8000/api/home/${newBet.creator_id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Include the token in the request headers
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => setBets(data.bets));
-    });
-};
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // Include the token in the request headers
+      },
+      body: JSON.stringify(newBet),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setMessage(data.message);
+        // Fetch updated list of bets after creating a new bet
+        fetch(`http://localhost:8000/api/home/${newBet.creator_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the request headers
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => setBets(data.bets));
+      });
+  };
 
-  const saveTokenToLocalStorage = (token) => {
+  const saveTokenToLocalStorage = (token: string) => {
     localStorage.setItem('token', token);
     setToken(token);
-    };
+  };
 
   const removeTokenFromLocalStorage = () => {
     localStorage.removeItem('token');
     setToken('');
-  };
-
-
   };
 
   return (
@@ -162,7 +160,8 @@ function Index() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button onClick={handleLogin}>Login</button>
+        {/* Use an arrow function to call handleLogin with the required parameter */}
+        <button onClick={() => handleLogin(saveTokenToLocalStorage)}>Login</button>
       </div>
 
       {/* Create a new bet */}
