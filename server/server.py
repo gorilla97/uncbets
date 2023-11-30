@@ -1,15 +1,18 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import mysql.connector
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required
-from flask_jwt_extended import JWTManager
-from werkzeug.security import generate_password_hash, check_password_hash, safe_str_cmp
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_principal import Principal, Permission, RoleNeed
 
 app = Flask(__name__)
 CORS(app)
-app.config['JWT_SECRET_KEY'] = 'supersecretkey!'
+app.config['SECRET_KEY'] = 'supersecretkey!'
+
+# Setup Flask-Login
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+principal = Principal(app)
 
 # MySQL database connection configuration
 db_config = {
@@ -19,9 +22,18 @@ db_config = {
     'database': 'uncbets_db',
 }
 
+# Define the User class for Flask-Login
+class User(UserMixin):
+    def __init__(self, user_id, username):
+        self.id = user_id
+        self.username = username
+
 # Function to create a database connection
 def get_db_connection():
     return mysql.connector.connect(**db_config)
+
+# Permission for admin role (if needed)
+admin_permission = Permission(RoleNeed('admin'))
 
 # Route for user registration
 @app.route("/api/register", methods=['POST'])
@@ -75,6 +87,9 @@ def login_user():
         user = cursor.fetchone()
 
         if user and check_password_hash(user[2], password):  # Assuming password is stored in the third column
+            # Use Flask-Login to log in the user
+            user_obj = User(user[0], user[1])
+            login_user(user_obj)
             return jsonify({'message': 'Login successful'})
         else:
             return jsonify({'message': 'Invalid credentials'})
@@ -82,64 +97,35 @@ def login_user():
     except Exception as e:
         return jsonify({'error': str(e)})
 
-def authenticate(username, password):
+# Flask-Login callback to load a user from the user ID stored in the session
+@login_manager.user_loader
+def load_user(user_id):
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    # Retrieve the user from the database
-    query = "SELECT * FROM user_table WHERE username = %s"
-    cursor.execute(query, (username,))
-    user = cursor.fetchone()
-
-    if user and safe_str_cmp(user[2], password):  # Assuming password is stored in the third column
-        return user
-
-def identity(payload):
-    user_id = payload['identity']
-    connection = get_db_connection()
-    cursor = connection.cursor()
-
-    # Retrieve the user from the database
+    # Retrieve the user from the database using user ID
     query = "SELECT * FROM user_table WHERE id = %s"
     cursor.execute(query, (user_id,))
-    return cursor.fetchone()
+    user_data = cursor.fetchone()
 
-jwt = JWT(app, authenticate, identity)
+    if user_data:
+        return User(user_data[0], user_data[1])
+    else:
+        return None
 
-# Route for creating a new bet
-@app.route("/api/create_bet", methods=['POST'])
-def create_bet():
-    data = request.get_json()
-    creator_id = data.get('creator_id')
-    acceptor_id = data.get('acceptor_id')
-    bet_worth = data.get('bet_worth')
-    bet_body = data.get('bet_body')
-
-    try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
-
-        if acceptor_id is not None:
-            # Update an existing bet (accept a bet)
-            query = "UPDATE bet_table SET acceptor_id = %s, bet_status = 'accepted' WHERE id = %s"
-            cursor.execute(query, (acceptor_id, creator_id))
-        else:
-            # Create a new bet
-            query = "INSERT INTO bet_table (creator_id, bet_worth, bet_body, bet_status) VALUES (%s, %s, %s, 'pending')"
-            cursor.execute(query, (creator_id, bet_worth, bet_body))
-
-        connection.commit()
-        cursor.close()
-        connection.close()
-
-        return jsonify({'message': 'Bet processed successfully'})
-
-    except Exception as e:
-        return jsonify({'error': str(e)})
+# Route for user logout
+@app.route("/api/logout", methods=['POST'])
+@login_required
+def logout_user():
+    logout_user()
+    return jsonify({'message': 'Logout successful'})
 
 # Update your existing "home" route to fetch and display bets
 @app.route("/api/home", methods=['GET'])
-def return_home(user_id):
+@login_required
+def return_home():
+    user_id = current_user.id
+
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
