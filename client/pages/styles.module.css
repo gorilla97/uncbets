@@ -1,0 +1,49 @@
+/* styles.module.css */
+.body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+}
+
+.red-background {
+  background-color: #ff0000;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: inherit;
+}
+
+.register-container {
+  text-align: center;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 300px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  background-color: #333;
+  color: #fff;
+  padding: 10px;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-around;
+}
+
+.link {
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
