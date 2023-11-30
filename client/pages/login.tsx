@@ -5,8 +5,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
-    // Add your login logic here
-    // Example: Call an API to authenticate the user
     try {
       const response = await fetch('http://localhost:8000/api/login', {
         method: 'POST',
@@ -19,7 +17,6 @@ const Login = () => {
       const data = await response.json();
 
       if (data.message === 'Login successful') {
-        // Redirect to the home page or do any other necessary actions
         console.log('Login successful');
       } else {
         console.log('Login failed');

@@ -30,16 +30,20 @@ function Index() {
       setToken(storedToken);
     }
 
-    fetch('http://localhost:8000/api/home')
+    async function getdata () {
+      await fetch('http://localhost:8000/api/home')
       .then((response) => response.json())
       .then((data) => {
         setMessage(data.message);
       });
 
-    // Fetch all bets
-    fetch('http://localhost:8000/api/bets')
-      .then((response) => response.json())
-      .then((data) => setBets(data.bets));
+      // Fetch all bets
+      await fetch('http://localhost:8000/api/bets')
+        .then((response) => response.json())
+        .then((data) => setBets(data.bets));
+      }
+
+      getdata()
   }, []);
 
   const handleRegister = () => {

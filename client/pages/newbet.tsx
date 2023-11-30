@@ -9,10 +9,11 @@ const NewBet = () => {
     bet_worth: 10,
     bet_body: '',
     bet_status: 'pending',
+    bet_value: '',
+    bet_odds: ''
   });
 
   const handleCreateBet = () => {
-    // Handle creating a new bet
     fetch('http://localhost:8000/api/create_bet', {
       method: 'POST',
       headers: {
@@ -23,7 +24,6 @@ const NewBet = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log(data.message);
-        // Optionally, you can redirect or perform other actions after creating the bet
       })
       .catch((error) => {
         console.error('Error creating bet:', error);
@@ -39,6 +39,18 @@ const NewBet = () => {
           placeholder="Bet Body"
           value={newBet.bet_body}
           onChange={(e) => setNewBet({ ...newBet, bet_body: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Bet Value"
+          value={newBet.bet_value}
+          onChange={(e) => setNewBet({ ...newBet, bet_value: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Bet Odds"
+          value={newBet.bet_odds}
+          onChange={(e) => setNewBet({ ...newBet, bet_odds: e.target.value })}
         />
         <button onClick={handleCreateBet}>Create Bet</button>
       </div>

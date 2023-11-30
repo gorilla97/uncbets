@@ -7,8 +7,6 @@ const Register = () => {
   const [password, setPassword] = useState('');
 
   const handleRegister = async () => {
-    // Add your registration logic here
-    // Example: Call an API to register a new user
     try {
       const response = await fetch('http://localhost:8000/api/register', {
         method: 'POST',
@@ -20,7 +18,6 @@ const Register = () => {
 
       const data = await response.json();
 
-      // Handle the response from the server, e.g., show a success message or handle errors
       console.log(data.message);
     } catch (error) {
       console.error('Error during registration:', error);

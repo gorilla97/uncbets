@@ -15,10 +15,13 @@ const BetLog = () => {
   const [bets, setBets] = useState<Bet[]>([]);
 
   useEffect(() => {
-    // Fetch bet log data
-    fetch('http://localhost:8000/api/betlog') // Replace with your actual API endpoint
-      .then((response) => response.json())
-      .then((data) => setBets(data.bets));
+    async function getbets() {
+        await fetch('http://localhost:8000/api/betlog') // Replace with actual API endpoint
+        .then((response) => response.json())
+        .then((data) => setBets(data.bets));
+    }
+
+    getbets()
   }, []);
 
   return (

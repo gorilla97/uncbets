@@ -8,11 +8,11 @@ const Home = () => {
     <div className={`${styles.body} ${styles.redBackground}`}>
       <header className={styles.header}>
         <nav className={styles.nav}>
-          <Link href="/betlog">
-            <a className={styles.link}>Bet Log</a>
+          <Link href="/betlog" className={styles.link}>
+            Bet Log
           </Link>
-          <Link href="/newbet">
-            <a className={styles.link}>New Bet</a>
+          <Link href="/newbet" className={styles.link}>
+            New Bet
           </Link>
         </nav>
       </header>
